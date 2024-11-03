@@ -17,6 +17,7 @@ class Game:
     async def add_player(self, websocket: WebSocket):
         player = Player(websocket)
         data = await websocket.receive_text()
+        print(data)
         name = json.loads(data)["name"]
         await player.login(str(len(self.players)), name)
         self.players.append(player)
