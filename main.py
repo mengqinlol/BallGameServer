@@ -7,6 +7,8 @@ from game import Game
 app = FastAPI()
 game = Game()
 
+game.start_game()
+
 # 存储活动的 WebSocket 连接
 connections = []
 

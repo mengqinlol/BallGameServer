@@ -14,8 +14,7 @@
 服务器返回成功信息
 ```json
 {
-    "code" : 200,
-    "msg": "login success, now xx players is in the game"
+    "id": "11"
 }
 ```
 - 客户端开始游戏
@@ -26,7 +25,7 @@
 ```json
 {
     "frame_idx": 0,
-    "id": 0,
+    "id": "0",
     "pos": [1,2,3],
     "eaten_food_ids": [0, 2, 3]
 }

@@ -29,9 +29,8 @@ class Player:
             '''
             self.frame_to_process = data
 
-    async def login(self, id: str, name: str):
+    async def login(self, id: str):
         self.id = id
-        self.name = name
         asyncio.create_task(self.listen())
 
     async def disconnect(self):
@@ -62,8 +61,6 @@ class Player:
     async def process_frame(self, frame_idx: int):
         if self.frame_to_process is not None:
             self.pos = self.frame_to_process['pos']
-            self.eaten_food_ids = self.frame_to_process['eaten_food_ids']
-            self.weight += len(self.eaten_food_ids)
             self.frame_to_process = None
 
     def distance_between(self, pos1, pos2):

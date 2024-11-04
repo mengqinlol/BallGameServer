@@ -16,13 +16,10 @@ class Game:
 
     async def add_player(self, websocket: WebSocket):
         player = Player(websocket)
-        data = await websocket.receive_text()
-        print(data)
-        name = json.loads(data)["name"]
-        await player.login(str(len(self.players)), name)
+        await player.login(str(len(self.players)))
+        player.id = str(len(self.players)+1)
+        await player.send_json({"code" : 200, "msg": f"login success, now {len(self.players)} players is in the game", "id": player.id })
         self.players.append(player)
-        player.id = str(len(self.players))
-        await player.send_json({"code" : 200, "msg": f"login success, now {len(self.players)} players is in the game" })
 
     async def info_to_send(self):
         players_info = []
@@ -34,13 +31,16 @@ class Game:
             foods_info.append(await food.info_to_send())
         return {"players": players_info, "foods": foods_info}
     
+    def is_eaten(self, food, player):
+        return (player.pos[0]-food.pos[0])^2 + (player.pos[1]-food.pos[1])^2 + (player.pos[2]-food.pos[2])^2 < player.weight^2
 
     async def process_frame(self, frame_idx):
         # 处理当前帧逻辑
         for player in self.players:
             await player.process_frame(frame_idx)
-            for food_idx in player.eaten_food_ids:
-                self.foods.pop(food_idx)
+            for idx, food in enumerate(self.foods):
+                if self.is_eaten(food,player):
+                    self.foods.popitem(idx)
 
         for i in range(len(self.players)):
             for j in range(i+1, len(self.players)):
@@ -53,7 +53,6 @@ class Game:
                     self.players[j].weight += self.players[i].weight
                     self.players[i].alive = False
 
-
         # 发送当前帧状态
         for player in self.players:
             res = player.send_json({
@@ -61,11 +60,6 @@ class Game:
 
     async def start_game(self):
         self.game_state = "running"
-        for player in self.players:
-            res = player.send_json({
-                "code" : 200, 
-                "msg": "game start", 
-                "players": [await p.info_to_send() for p in self.players]})
         frame_idx = 0
         while True:
             start_time = time.time()  # 获取当前时间
