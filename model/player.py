@@ -23,8 +23,7 @@ class Player:
             {
                 'frame_idx': xxx,
                 'id': xxx,
-                'pos': (x, y, z),
-                'eaten_food_ids': [xxx, xxx, ...]
+                'pos': (x, y, z)
             }
             '''
             self.frame_to_process = data

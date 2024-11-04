@@ -16,13 +16,7 @@ connections = []
 async def websocket_endpoint(websocket: WebSocket):
     print("websocket connected")
     await websocket.accept()
-    # await game.add_player(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()  # 接收消息
-            await websocket.send_text(f"Message received: {data}")  # 发送消息
-    except WebSocketDisconnect:
-        print("Client disconnected")  # 客户端断开连接
+    await game.add_player(websocket)
     
 
 @app.get("/")

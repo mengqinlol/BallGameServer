@@ -16,9 +16,8 @@ class Game:
 
     async def add_player(self, websocket: WebSocket):
         player = Player(websocket)
-        await player.login(str(len(self.players)))
-        player.id = str(len(self.players)+1)
-        await player.send_json({"code" : 200, "msg": f"login success, now {len(self.players)} players is in the game", "id": player.id })
+        await player.login(str(len(self.players)+1))
+        await player.send_json({"id": player.id })
         self.players.append(player)
 
     async def info_to_send(self):
@@ -32,7 +31,7 @@ class Game:
         return {"players": players_info, "foods": foods_info}
     
     def is_eaten(self, food, player):
-        return (player.pos[0]-food.pos[0])^2 + (player.pos[1]-food.pos[1])^2 + (player.pos[2]-food.pos[2])^2 < player.weight^2
+        return (player.pos[0]-food.pos[0])**2 + (player.pos[1]-food.pos[1])**2 + (player.pos[2]-food.pos[2])**2 < player.weight**2
 
     async def process_frame(self, frame_idx):
         # 处理当前帧逻辑
@@ -41,6 +40,7 @@ class Game:
             for idx, food in enumerate(self.foods):
                 if self.is_eaten(food,player):
                     self.foods.popitem(idx)
+                    player.weight += 1
 
         for i in range(len(self.players)):
             for j in range(i+1, len(self.players)):
@@ -48,9 +48,11 @@ class Game:
                     continue
                 if self.players[i].weight > self.players[j].weight:
                     self.players[i].weight += self.players[j].weight
+                    self.players[j].weight = 0
                     self.players[j].alive = False
                 else:
                     self.players[j].weight += self.players[i].weight
+                    self.players[j].weight = 0
                     self.players[i].alive = False
 
         # 发送当前帧状态
