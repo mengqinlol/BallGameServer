@@ -2,6 +2,9 @@ from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.websockets import WebSocketDisconnect
 import asyncio
+import json
+
+import uvicorn
 from game import Game
 import threading
 
@@ -19,7 +22,6 @@ def run_event_loop(loop):
 new_loop = asyncio.new_event_loop()
 
 thread = threading.Thread(target=run_event_loop, args=(new_loop,))
-thread.start()
 
 new_loop.create_task(start_game_in_task())
 
@@ -30,7 +32,17 @@ connections = []
 async def websocket_endpoint(websocket: WebSocket):
     print("websocket connected")
     await websocket.accept()
-    await game.add_player(websocket)
+    player_id = await game.add_player()
+    player_id -= 1
+    print("player added")
+    while True:
+        await websocket.send_text(game.players[player_id].message_to_send)
+        print(game.players[player_id].message_to_send)
+        data = await websocket.receive_text()
+        print("data:",data)
+        data = json.loads(data)
+        game.players[player_id].frame_to_process = data
+        await asyncio.sleep(0.1)
     
 
 @app.get("/")
@@ -60,3 +72,7 @@ async def start():
 @app.get("/players")
 async def get_players():
     return {"code":200, "data":[{"name":player.name, "id":player.id }for player in game.players]}
+
+if __name__ == "__main__":
+    thread.start()
+    uvicorn.run(app, host="0.0.0.0", port=25555)

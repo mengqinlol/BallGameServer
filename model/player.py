@@ -3,45 +3,23 @@ import json
 import asyncio
 
 class Player:
-    def __init__(self, websocket: WebSocket):
+    def __init__(self):
         self.id = ''
         self.name = ''
         self.pos = (0, 0, 0)
-        self.websocket = websocket
         self.connected = True
         self.alive = True
-        self.weight = 5
+        self.weight = 1000
         self.frame_to_process = None
         self.eaten_food_ids = []
-        
-    async def listen(self):
-        while self.connected:
-            try:
-                data = await self.websocket.receive_text()
-                data = json.loads(data)
-                '''
-                data:
-                {
-                    'frame_idx': xxx,
-                    'id': xxx,
-                    'pos': (x, y, z)
-                }
-                '''
-                self.frame_to_process = data
-            except WebSocketDisconnect as e:
-                print(f"WebSocket disconnected unexpectedly: {e}")
+        self.message_to_send = ""
 
     async def login(self, id: str):
         self.id = id
-        asyncio.create_task(self.listen())
-
-    async def disconnect(self):
-        self.connected = False
-        await self.websocket.close()
+        await self.send_json({"id": id })
 
     async def send_message(self, message: str):
-        if self.connected: 
-            res = self.websocket.send_text(message)
+        self.message_to_send = message
 
     def set_position(self, pos: tuple[int, int, int]):
         self.pos = pos
@@ -50,7 +28,7 @@ class Player:
         return self.pos
     
     async def send_json(self, data: dict):
-        res = self.send_message(json.dumps(data))
+        await self.send_message(json.dumps(data))
 
     async def info_to_send(self):
         return {
@@ -64,6 +42,9 @@ class Player:
         if self.frame_to_process is not None:
             self.pos = self.frame_to_process['pos']
             self.frame_to_process = None
+
+    async def process(self, data: dict):
+        self.pos = data['pos']
 
     def distance_between(self, pos1, pos2):
         return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2 + (pos1[2] - pos2[2]) ** 2) ** 0.5

@@ -1,7 +1,11 @@
+import random
+N = 50000
 class Food:
-    def __init__(self, id, pos: tuple[int, int, int] = (0, 0, 0)):
+    def __init__(self, id):
         self.id = id
-        self.pos = pos
+        random.seed(id)
+        self.pos = (random.randint(-N, N), 0, random.randint(-N, N))
+        self.exist = True
     
     def set_pos(self, pos: tuple[int, int, int]):
         self.pos = pos
@@ -15,5 +19,6 @@ class Food:
     async def info_to_send(self):
         return {
             "id": self.id,
-            "pos": self.pos
+            "pos": self.pos,
+            "exist": self.exist
         }
