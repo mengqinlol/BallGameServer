@@ -3,11 +3,25 @@ from fastapi.responses import HTMLResponse
 from fastapi.websockets import WebSocketDisconnect
 import asyncio
 from game import Game
+import threading
 
 app = FastAPI()
 game = Game()
 
-game.start_game()
+async def start_game_in_task():
+    print("start game")
+    await game.start_game()
+
+def run_event_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+new_loop = asyncio.new_event_loop()
+
+thread = threading.Thread(target=run_event_loop, args=(new_loop,))
+thread.start()
+
+new_loop.create_task(start_game_in_task())
 
 # 存储活动的 WebSocket 连接
 connections = []

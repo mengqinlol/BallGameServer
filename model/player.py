@@ -1,4 +1,4 @@
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 import json
 import asyncio
 
@@ -16,17 +16,20 @@ class Player:
         
     async def listen(self):
         while self.connected:
-            data = await self.websocket.receive_text()
-            data = json.loads(data)
-            '''
-            data:
-            {
-                'frame_idx': xxx,
-                'id': xxx,
-                'pos': (x, y, z)
-            }
-            '''
-            self.frame_to_process = data
+            try:
+                data = await self.websocket.receive_text()
+                data = json.loads(data)
+                '''
+                data:
+                {
+                    'frame_idx': xxx,
+                    'id': xxx,
+                    'pos': (x, y, z)
+                }
+                '''
+                self.frame_to_process = data
+            except WebSocketDisconnect as e:
+                print(f"WebSocket disconnected unexpectedly: {e}")
 
     async def login(self, id: str):
         self.id = id

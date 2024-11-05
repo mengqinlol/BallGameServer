@@ -57,7 +57,7 @@ class Game:
 
         # 发送当前帧状态
         for player in self.players:
-            res = player.send_json({
+            await player.send_json({
                 "data": await self.info_to_send()})
 
     async def start_game(self):
@@ -69,4 +69,4 @@ class Game:
             elapsed_time = time.time() - start_time  # 计算函数执行所花费的时间
             
             # 计算剩余的时间并等待
-            await asyncio.sleep(max(0, 0.1 - elapsed_time))
+            time.sleep(max(0, 0.1 - elapsed_time))
